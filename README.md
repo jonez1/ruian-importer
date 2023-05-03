@@ -4,6 +4,9 @@ Wrapper around [ruian2pgsql](https://github.com/fordfrog/ruian2pgsql).
 
 ## Specifikace postupu
 
+### Sestavení
+	./mvnw -e clean package
+
 ### Prvotní import
 
 1. Import plné dávky (Úplná kopie) "Stát až ZSJ" a "Obec a podřazené" 
