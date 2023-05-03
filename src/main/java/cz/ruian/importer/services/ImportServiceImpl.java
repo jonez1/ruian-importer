@@ -63,7 +63,10 @@ public class ImportServiceImpl implements ImportService {
     }
 
     @Override
-    @Scheduled(cron = "0 0 4 * * ?")
+
+    // automatic running disabled
+    // @Scheduled(cron = "0 0 4 * * ?")
+
     public void process() throws Exception {
 
         final Date date = getLastDeltaFileDate();
@@ -76,8 +79,7 @@ public class ImportServiceImpl implements ImportService {
 
             logger.info("Run full import...");
 
-            /*
-            final List<URL> urlList = new ArrayList<>();
+            List<URL> urlList = new ArrayList<>();
             for (final URL url : vdpUtils.getLinksForProcessing()) {
                 final String filename = FilenameUtils.getName(url.getPath());
                 if (!isImported(filename)) {
@@ -86,12 +88,15 @@ public class ImportServiceImpl implements ImportService {
                     logger.info(filename + " is already imported.");
                 }
             }
-             */
-            final List<URL> urlList = vdpUtils.getLinksForProcessing();
+
+            // final List<URL> urlList = vdpUtils.getLinksForProcessing();
             if (urlList.size() > 0) {
-                doimport(urlList);
+               doimport(urlList);
             }
 
+            logger.info("Full import finished...");
+			logger.info("Delta import skipped");
+			/*
             //
             // Compute from and Process delta files
             //
@@ -101,17 +106,20 @@ public class ImportServiceImpl implements ImportService {
             from.set(Calendar.DATE, 1); // set DATE to 1, so first date of previous month
             from.set(Calendar.DATE, from.getActualMaximum(Calendar.DAY_OF_MONTH)); // set actual maximum date of previous month
 
+            logger.info("-------------------------------------------------");
             logger.info("Run delta import from " + from.toInstant() + "...");
 
             final List<URL> deltaUrlList = vdpUtils.getLinksForProcessing(from);
             if (deltaUrlList.size() > 0) {
                 doimport(deltaUrlList); // process delta files
             }
+			*/
 
-            logger.info("Full import finished...");
+        } 
+	else {
+			logger.info("Delta import skipped");
 
-        } else {
-
+			/*
             //
             // Delta Import
             //
@@ -137,6 +145,7 @@ public class ImportServiceImpl implements ImportService {
             }
 
             logger.info("Delta import from " + from.toInstant() + " finished...");
+			*/
         }
     }
 
@@ -146,10 +155,16 @@ public class ImportServiceImpl implements ImportService {
         // Create temp dir & download files
         //
 
-        final Path temp = Files.createTempDirectory(Paths.get("/var/tmp"), "ruian");
-        logger.info("Create temp directory " + temp);
-        FileUtils.forceDeleteOnExit(temp.toFile());
+        // final Path temp = Files.createTempDirectory(Paths.get("/var/tmp"), "ruian");
+        Path temp = Paths.get("/var/tmp/ruian-data");
+        logger.info("Shared download directory - " + temp);
 
+        if (!Files.exists(temp)) {
+            logger.info("Creating download directory");
+            temp = Files.createDirectory(temp);
+		}
+
+        // FileUtils.forceDeleteOnExit(temp.toFile());
         Config.setInputDirPath(temp);
 
         vdpUtils.download(urlList, temp.toFile());
@@ -161,16 +176,17 @@ public class ImportServiceImpl implements ImportService {
         try (final Writer logFile = new OutputStreamWriter(Config.getLogFilePath() == null ? new LogOutputStream(logger) : Files.newOutputStream(Config.getLogFilePath()), "UTF-8")) {
             Log.setLogWriter(logFile);
             MainConvertor.convert();
-        } catch (final IOException ex) {
+        } 
+		catch (final IOException ex) {
             throw new RuntimeException("Failed to create log writer", ex);
-        } finally {
+        } 
+		finally {
             try {
                 FileUtils.forceDelete(temp.toFile());
             } catch (IOException e) {
                 logger.error("Error delete temp directory", e);
             }
         }
-
     }
 
     private boolean isImported(String filename) throws SQLException {
