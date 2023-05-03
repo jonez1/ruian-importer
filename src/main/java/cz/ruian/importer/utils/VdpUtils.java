@@ -119,7 +119,7 @@ public class VdpUtils {
 
     @SuppressWarnings("WeakerAccess")
     public void download(final List<URL> urls, File destination) throws InterruptedException {
-        final ExecutorService executorService = Executors.newFixedThreadPool(10);
+        final ExecutorService executorService = Executors.newFixedThreadPool(5);
         for (final URL url : urls) {
             executorService.submit(() -> {
                 doDownload(destination, url);
