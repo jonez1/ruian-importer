@@ -91,9 +91,10 @@ public class VdpUtils {
         for (final String linkList : getLinkListUrls()) {
             for (final URL link : getLinks(linkList)) {
                 for (final String prefix : getActualFilePrefix()) {
-                    //if (link.toString().contains(prefix)) {
-                    links.add(link);
-                    //}
+                    if (link.toString().contains(prefix)) {
+                        logger.info("--- adding" + link.toString());
+                        links.add(link);
+                    }
                 }
             }
         }
